@@ -10,17 +10,21 @@ const SCAN_COOLDOWN_MS = 3000; // evita registrar el mismo QR varias veces segui
 const sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
 const el = {
-  loginScreen: document.getElementById("login-screen"),
+  // Pop-up de login
+  loginModal: document.getElementById("login-modal"),
   loginNombre: document.getElementById("login-nombre"),
   loginDni: document.getElementById("login-dni"),
   loginError: document.getElementById("login-error"),
   btnLogin: document.getElementById("btn-login"),
-  topbar: document.getElementById("topbar"),
+
+  // Barra superior y operador
   operatorBar: document.getElementById("operator-bar"),
   operatorName: document.getElementById("operator-name"),
   mainContent: document.getElementById("main-content"),
   btnLogout: document.getElementById("btn-logout"),
-  counter: document.getElementById("counter"),
+  btnAttendance: document.getElementById("btn-attendance"),
+
+  // Escaneo / resultado
   resultCard: document.getElementById("result-card"),
   resultIcon: document.getElementById("result-icon"),
   resultTitle: document.getElementById("result-title"),
@@ -30,6 +34,14 @@ const el = {
   historyList: document.getElementById("history-list"),
   btnToggleCamera: document.getElementById("btn-toggle-camera"),
   btnTorch: document.getElementById("btn-torch"),
+
+  // Pop-up de asistentes registrados
+  attendanceModal: document.getElementById("attendance-modal"),
+  btnCloseAttendance: document.getElementById("btn-close-attendance"),
+  attendanceSearch: document.getElementById("attendance-search"),
+  attendanceList: document.getElementById("attendance-list"),
+  attendanceEmpty: document.getElementById("attendance-empty"),
+  attendanceLoading: document.getElementById("attendance-loading"),
 };
 
 let operador = null; // { nombre, dni }
@@ -56,21 +68,19 @@ function operadorLabel(op) {
   return op.dni ? `${op.nombre} (DNI ${op.dni})` : op.nombre;
 }
 
+// Muestra el pop-up de login. El resto de la app queda detrás, no se navega a otra ruta.
 function showLogin() {
-  el.loginScreen.hidden = false;
-  el.topbar.hidden = true;
+  el.loginModal.hidden = false;
   el.operatorBar.hidden = true;
-  el.mainContent.hidden = true;
   if (html5QrCode) {
     html5QrCode.stop().catch(() => {});
   }
 }
 
+// Cierra el pop-up de login y deja visible la app (que ya estaba montada detrás).
 function showApp() {
-  el.loginScreen.hidden = true;
-  el.topbar.hidden = false;
+  el.loginModal.hidden = true;
   el.operatorBar.hidden = false;
-  el.mainContent.hidden = false;
   el.operatorName.textContent = operadorLabel(operador);
 }
 
@@ -166,7 +176,7 @@ async function refreshCounter() {
     .select("*", { count: "exact", head: true });
   if (!error && typeof count === "number") {
     totalCount = count;
-    el.counter.textContent = `${totalCount} registrado(s)`;
+    el.btnAttendance.textContent = `${totalCount} registrado(s)`;
   }
 }
 
@@ -244,7 +254,7 @@ async function registerScan(record) {
 
   if (!error) {
     totalCount += 1;
-    el.counter.textContent = `${totalCount} registrado(s)`;
+    el.btnAttendance.textContent = `${totalCount} registrado(s)`;
     showResult("ok", "Asistencia registrada", record);
     addToHistory(record, "registrado");
     beep(880, 120);
@@ -373,6 +383,102 @@ el.btnTorch.addEventListener("click", async () => {
   } catch {
     /* algunos dispositivos no lo soportan */
   }
+});
+
+// ---------- Pop-up: asistentes registrados ----------
+
+let attendanceData = []; // cache de la última carga, para filtrar en el cliente sin golpear la BD en cada tecla
+
+// Nombres de columna de fecha que podrían existir en la tabla, según cómo se haya creado
+const POSSIBLE_DATE_FIELDS = ["created_at", "inserted_at", "fecha", "fecha_registro", "timestamp"];
+
+function getDateField(record) {
+  for (const key of POSSIBLE_DATE_FIELDS) {
+    if (record[key]) return record[key];
+  }
+  return null;
+}
+
+async function fetchAttendance() {
+  // Intenta ordenar por fecha de creación; si la columna no existe en tu tabla, reintenta sin orden.
+  let { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
+  if (error) {
+    const retry = await sb.from(TABLE).select("*");
+    data = retry.data;
+    error = retry.error;
+  }
+  return { data: data || [], error };
+}
+
+function matchesSearch(record, term) {
+  if (!term) return true;
+  return ["dni", "asistente", "coordinador", "campana"].some((key) =>
+    String(record[key] ?? "").toLowerCase().includes(term)
+  );
+}
+
+function renderAttendanceList() {
+  const term = el.attendanceSearch.value.trim().toLowerCase();
+  const filtered = attendanceData.filter((r) => matchesSearch(r, term));
+
+  el.attendanceList.innerHTML = "";
+
+  if (filtered.length === 0) {
+    el.attendanceEmpty.hidden = false;
+    el.attendanceEmpty.textContent = "No se encontraron resultados.";
+    return;
+  }
+  el.attendanceEmpty.hidden = true;
+
+  for (const r of filtered) {
+    const li = document.createElement("li");
+    const dateField = getDateField(r);
+    const timeLabel = dateField
+      ? new Date(dateField).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" })
+      : "Hora no disponible";
+    li.innerHTML = `
+      <div class="att-name">${escapeHtml(String(r.asistente ?? ""))}</div>
+      <div class="att-meta">DNI ${escapeHtml(String(r.dni ?? ""))} · ${escapeHtml(String(r.coordinador ?? ""))} · ${escapeHtml(String(r.campana ?? ""))}</div>
+      <div class="att-meta">${escapeHtml(timeLabel)}</div>
+    `;
+    el.attendanceList.appendChild(li);
+  }
+}
+
+async function openAttendanceModal() {
+  el.attendanceModal.hidden = false;
+  el.attendanceSearch.value = "";
+  el.attendanceList.innerHTML = "";
+  el.attendanceEmpty.hidden = true;
+  el.attendanceLoading.hidden = false;
+
+  const { data, error } = await fetchAttendance();
+
+  el.attendanceLoading.hidden = true;
+
+  if (error) {
+    console.error("ERROR SUPABASE (lista de asistentes):", error);
+    attendanceData = [];
+    el.attendanceEmpty.hidden = false;
+    el.attendanceEmpty.textContent = "No se pudo cargar la lista de asistentes.";
+    return;
+  }
+
+  attendanceData = data;
+  renderAttendanceList();
+}
+
+function closeAttendanceModal() {
+  el.attendanceModal.hidden = true;
+}
+
+el.btnAttendance.addEventListener("click", openAttendanceModal);
+el.btnCloseAttendance.addEventListener("click", closeAttendanceModal);
+el.attendanceSearch.addEventListener("input", renderAttendanceList);
+
+// Cierra el pop-up al tocar el fondo (fuera de la tarjeta)
+el.attendanceModal.addEventListener("click", (e) => {
+  if (e.target === el.attendanceModal) closeAttendanceModal();
 });
 
 // ---------- Arranque ----------

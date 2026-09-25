@@ -56,24 +56,77 @@ html, body {
   margin-left: 4px;
 }
 
-/* ---------- Login ---------- */
+/* ---------- Pop-ups / modales ---------- */
 
-.login-screen {
-  min-height: 100dvh;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+.modal-overlay[hidden] { display: none; }
+
+.login-overlay {
   background: linear-gradient(160deg, var(--sl-teal-dark) 0%, var(--sl-teal-bright) 100%);
 }
 
-.login-card {
+.attendance-overlay {
+  background: rgba(8, 28, 34, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
   background: var(--sl-card);
   border-radius: 18px;
-  padding: 32px 26px;
+  padding: 26px;
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 40, 50, 0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--sl-teal-dark);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--sl-muted);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.modal-close:hover { color: var(--sl-text); background: var(--sl-bg); }
+
+/* ---------- Login (pop-up) ---------- */
+
+.login-card {
+  max-width: 360px;
+  padding: 32px 26px;
   text-align: center;
 }
 
@@ -120,6 +173,41 @@ html, body {
   font-size: 12.5px;
   margin-top: 12px;
 }
+
+/* ---------- Pop-up: asistentes registrados ---------- */
+
+.attendance-card {
+  max-width: 440px;
+  text-align: left;
+}
+
+.attendance-status {
+  color: var(--sl-muted);
+  font-size: 13px;
+  text-align: center;
+  margin: 18px 0 0;
+}
+
+.attendance-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attendance-list li {
+  background: #fff;
+  border: 1px solid var(--sl-border);
+  border-left: 4px solid var(--sl-teal-bright);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.att-name { font-weight: 700; color: var(--sl-text); }
+.att-meta { color: var(--sl-muted); font-size: 12px; margin-top: 2px; }
 
 /* ---------- Botones ---------- */
 
@@ -181,16 +269,22 @@ html, body {
   gap: 4px;
 }
 
+/* El contador ahora es un <button> que abre el pop-up de asistentes */
 .counter {
   font-size: 13px;
   font-weight: 600;
+  font-family: var(--font-body);
   color: var(--sl-teal-dark);
   background: #e6f6f8;
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid var(--sl-teal-bright);
   white-space: nowrap;
+  cursor: pointer;
 }
+
+.counter:hover { background: #d9f0f3; }
+.counter:active { opacity: 0.8; }
 
 .operator-bar {
   background: var(--sl-teal-dark);
@@ -219,6 +313,7 @@ main {
 
 #reader {
   width: 100%;
+  min-height: 220px;
   border-radius: 12px;
   overflow: hidden;
   background: #000;
