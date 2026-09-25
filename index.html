@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Control de Asistencia · Escáner QR</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Control de Asistencia</h1>
+    <div class="counter" id="counter">0 registrados</div>
+  </header>
+
+  <main>
+    <section class="scanner-card">
+      <div id="reader"></div>
+      <div class="scanner-controls">
+        <button id="btn-toggle-camera" class="btn secondary">🔄 Cambiar cámara</button>
+        <button id="btn-torch" class="btn secondary" hidden>🔦 Linterna</button>
+      </div>
+    </section>
+
+    <section class="result-card" id="result-card" hidden>
+      <div class="result-icon" id="result-icon"></div>
+      <div class="result-info">
+        <p class="result-title" id="result-title"></p>
+        <dl class="result-fields" id="result-fields"></dl>
+      </div>
+    </section>
+
+    <section class="status-bar">
+      <span id="conn-status" class="pill">● en línea</span>
+      <span id="queue-status" class="pill" hidden></span>
+    </section>
+
+    <section class="history">
+      <h2>Últimos escaneados</h2>
+      <ul id="history-list"></ul>
+    </section>
+  </main>
+
+  <!-- Supabase client (UMD build) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- Librería de escaneo QR usando la cámara -->
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
