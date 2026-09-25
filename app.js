@@ -184,13 +184,18 @@ async function registerScan(record) {
     return;
   }
 
-  // Cualquier otro error de red -> se encola para reintentar
-  const q = getQueue();
-  q.push(record);
-  saveQueue(q);
-  showResult("dup", "No se pudo enviar — guardado para reintentar", record);
-  addToHistory(record, "en cola");
-  beep(440, 120);
+  // Mostrar el error real de Supabase
+  console.error("ERROR SUPABASE:", error);
+
+  showResult("err", "Error de Supabase", {
+    codigo: error.code || "N/A",
+    mensaje: error.message || "Sin mensaje",
+    detalle: error.details || "",
+    hint: error.hint || ""
+  });
+
+  addToHistory(record, "error");
+  beep(220, 250);
 }
 
 function beep(freq, duration) {
