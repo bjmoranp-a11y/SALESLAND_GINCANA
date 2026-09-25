@@ -1,12 +1,22 @@
 :root {
-  --bg: #0f1115;
-  --card: #1a1d24;
-  --text: #f2f3f5;
-  --muted: #9aa1ad;
-  --green: #2fbf71;
-  --red: #e5484d;
-  --accent: #4f8cff;
-  --border: #2a2e37;
+  /* Paleta extraída de la infografía "Ventajas de trabajar en Salesland" */
+  --sl-teal-bright: #00acc0;   /* franjas superiores/inferiores */
+  --sl-teal-mid: #00849c;      /* acentos, botones */
+  --sl-teal-dark: #00627b;     /* franja central oscura */
+  --sl-slate: #3e5b67;         /* texto "VENTAJAS DE TRABAJAR EN" */
+  --sl-gray: #8e9091;          /* "LAND" */
+  --sl-bg: #f5f8f9;
+  --sl-card: #ffffff;
+  --sl-border: #e1e8ea;
+  --sl-text: #223138;
+  --sl-muted: #6b7d84;
+
+  --state-green: #1f9d6b;
+  --state-amber: #c98a1f;
+  --state-red: #d1454a;
+
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -14,37 +24,183 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--sl-bg);
+  color: var(--sl-text);
+  font-family: var(--font-body);
 }
+
+/* ---------- Marca ---------- */
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 30px;
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.brand-sales { color: var(--sl-teal-dark); }
+.brand-land { color: var(--sl-gray); }
+
+.brand-small { font-size: 18px; gap: 6px; flex-wrap: wrap; align-items: center; }
+.brand-tagline {
+  font-family: var(--font-body);
+  text-transform: none;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--sl-muted);
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+/* ---------- Login ---------- */
+
+.login-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, var(--sl-teal-dark) 0%, var(--sl-teal-bright) 100%);
+}
+
+.login-card {
+  background: var(--sl-card);
+  border-radius: 18px;
+  padding: 32px 26px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 20px 40px rgba(0, 40, 50, 0.25);
+  text-align: center;
+}
+
+.login-card .brand {
+  justify-content: center;
+  font-size: 34px;
+}
+
+.login-subtitle {
+  margin: 4px 0 24px;
+  color: var(--sl-muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.field-label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sl-muted);
+  margin: 14px 0 6px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--sl-border);
+  font-size: 15px;
+  font-family: var(--font-body);
+  background: #fbfdfd;
+  color: var(--sl-text);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--sl-teal-mid);
+}
+
+.login-error {
+  color: var(--state-red);
+  font-size: 12.5px;
+  margin-top: 12px;
+}
+
+/* ---------- Botones ---------- */
+
+.btn {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--sl-border);
+  background: #fff;
+  color: var(--sl-text);
+  font-size: 14px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.secondary { flex: 1; background: #fff; }
+.btn:active { opacity: 0.8; }
+
+.btn.primary {
+  background: var(--sl-teal-mid);
+  border-color: var(--sl-teal-mid);
+  color: #fff;
+}
+
+.btn.full { width: 100%; margin-top: 22px; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--sl-teal-mid);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 6px 4px;
+  text-decoration: underline;
+}
+
+/* ---------- Topbar ---------- */
 
 .topbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 16px 18px calc(12px + env(safe-area-inset-top, 0px));
-  padding-top: calc(16px + env(safe-area-inset-top, 0px));
-  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  padding: 14px 18px calc(12px + env(safe-area-inset-top, 0px));
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  border-bottom: 3px solid var(--sl-teal-bright);
   position: sticky;
   top: 0;
-  background: var(--bg);
+  background: #fff;
   z-index: 10;
 }
 
-.topbar h1 {
-  font-size: 18px;
-  margin: 0;
+.topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
 }
 
 .counter {
   font-size: 13px;
-  color: var(--muted);
-  background: var(--card);
+  font-weight: 600;
+  color: var(--sl-teal-dark);
+  background: #e6f6f8;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--sl-teal-bright);
+  white-space: nowrap;
 }
+
+.operator-bar {
+  background: var(--sl-teal-dark);
+  color: #fff;
+  font-size: 12.5px;
+  text-align: center;
+  padding: 6px 10px;
+}
+
+.operator-bar b { font-weight: 700; }
 
 main {
   max-width: 480px;
@@ -54,8 +210,8 @@ main {
 }
 
 .scanner-card {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--sl-card);
+  border: 1px solid var(--sl-border);
   border-radius: 16px;
   padding: 12px;
   overflow: hidden;
@@ -74,19 +230,6 @@ main {
   margin-top: 10px;
 }
 
-.btn {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #22262f;
-  color: var(--text);
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.btn:active { opacity: 0.8; }
-
 .result-card {
   margin-top: 14px;
   border-radius: 16px;
@@ -94,20 +237,21 @@ main {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--sl-border);
+  background: var(--sl-card);
 }
 
-.result-card.ok { background: rgba(47, 191, 113, 0.12); border-color: var(--green); }
-.result-card.dup { background: rgba(229, 176, 24, 0.12); border-color: #e5b018; }
-.result-card.err { background: rgba(229, 72, 77, 0.12); border-color: var(--red); }
+.result-card.ok { background: rgba(31, 157, 107, 0.08); border-color: var(--state-green); }
+.result-card.dup { background: rgba(201, 138, 31, 0.1); border-color: var(--state-amber); }
+.result-card.err { background: rgba(209, 69, 74, 0.08); border-color: var(--state-red); }
 
 .result-icon { font-size: 28px; line-height: 1; }
 
-.result-title { margin: 0 0 6px; font-weight: 600; font-size: 15px; }
+.result-title { margin: 0 0 6px; font-weight: 700; font-size: 15px; }
 
-.result-fields { margin: 0; font-size: 13px; color: var(--muted); }
+.result-fields { margin: 0; font-size: 13px; color: var(--sl-muted); }
 .result-fields div { margin-bottom: 2px; }
-.result-fields b { color: var(--text); font-weight: 500; }
+.result-fields b { color: var(--sl-text); font-weight: 600; }
 
 .status-bar {
   display: flex;
@@ -119,22 +263,31 @@ main {
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--muted);
+  background: var(--sl-card);
+  border: 1px solid var(--sl-border);
+  color: var(--sl-muted);
+  font-weight: 500;
 }
 
-.pill.online { color: var(--green); }
-.pill.offline { color: var(--red); }
+.pill.online { color: var(--state-green); border-color: var(--state-green); }
+.pill.offline { color: var(--state-red); border-color: var(--state-red); }
 
 .history { margin-top: 20px; }
-.history h2 { font-size: 14px; color: var(--muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+.history h2 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--sl-teal-dark);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 #history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 
 #history-list li {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--sl-card);
+  border: 1px solid var(--sl-border);
+  border-left: 4px solid var(--sl-teal-bright);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 13px;
@@ -143,4 +296,4 @@ main {
   gap: 8px;
 }
 
-#history-list li span.small { color: var(--muted); font-size: 11px; }
+#history-list li span.small { color: var(--sl-muted); font-size: 11px; }

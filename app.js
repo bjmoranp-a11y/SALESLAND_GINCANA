@@ -4,11 +4,22 @@
 
 const TABLE = "asistencia";
 const QUEUE_KEY = "asistencia_pending_queue_v1";
+const OPERATOR_KEY = "asistencia_operador_v1";
 const SCAN_COOLDOWN_MS = 3000; // evita registrar el mismo QR varias veces seguidas
 
 const sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
 const el = {
+  loginScreen: document.getElementById("login-screen"),
+  loginNombre: document.getElementById("login-nombre"),
+  loginDni: document.getElementById("login-dni"),
+  loginError: document.getElementById("login-error"),
+  btnLogin: document.getElementById("btn-login"),
+  topbar: document.getElementById("topbar"),
+  operatorBar: document.getElementById("operator-bar"),
+  operatorName: document.getElementById("operator-name"),
+  mainContent: document.getElementById("main-content"),
+  btnLogout: document.getElementById("btn-logout"),
   counter: document.getElementById("counter"),
   resultCard: document.getElementById("result-card"),
   resultIcon: document.getElementById("result-icon"),
@@ -20,6 +31,73 @@ const el = {
   btnToggleCamera: document.getElementById("btn-toggle-camera"),
   btnTorch: document.getElementById("btn-torch"),
 };
+
+let operador = null; // { nombre, dni }
+
+// ---------- Login / identificación del operador ----------
+
+function loadOperador() {
+  try {
+    return JSON.parse(localStorage.getItem(OPERATOR_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveOperador(op) {
+  localStorage.setItem(OPERATOR_KEY, JSON.stringify(op));
+}
+
+function clearOperador() {
+  localStorage.removeItem(OPERATOR_KEY);
+}
+
+function operadorLabel(op) {
+  return op.dni ? `${op.nombre} (DNI ${op.dni})` : op.nombre;
+}
+
+function showLogin() {
+  el.loginScreen.hidden = false;
+  el.topbar.hidden = true;
+  el.operatorBar.hidden = true;
+  el.mainContent.hidden = true;
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => {});
+  }
+}
+
+function showApp() {
+  el.loginScreen.hidden = true;
+  el.topbar.hidden = false;
+  el.operatorBar.hidden = false;
+  el.mainContent.hidden = false;
+  el.operatorName.textContent = operadorLabel(operador);
+}
+
+el.btnLogin.addEventListener("click", () => {
+  const nombre = el.loginNombre.value.trim();
+  const dni = el.loginDni.value.trim();
+  if (!nombre || !dni) {
+    el.loginError.hidden = false;
+    return;
+  }
+  el.loginError.hidden = true;
+  operador = { nombre, dni };
+  saveOperador(operador);
+  showApp();
+  initCameraAndScanner();
+});
+
+el.btnLogout.addEventListener("click", () => {
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => {});
+  }
+  clearOperador();
+  operador = null;
+  el.loginNombre.value = "";
+  el.loginDni.value = "";
+  showLogin();
+});
 
 let cameras = [];
 let currentCameraIndex = 0;
@@ -150,9 +228,11 @@ function parseQrPayload(text) {
 // ---------- Registro en Supabase ----------
 
 async function registerScan(record) {
+  const payload = { ...record, escaneado_por: operador ? operadorLabel(operador) : null };
+
   if (!navigator.onLine) {
     const q = getQueue();
-    q.push(record);
+    q.push(payload);
     saveQueue(q);
     showResult("dup", "Sin conexión — guardado para sincronizar", record);
     addToHistory(record, "en cola");
@@ -160,7 +240,7 @@ async function registerScan(record) {
     return;
   }
 
-  const { error } = await sb.from(TABLE).insert(record);
+  const { error } = await sb.from(TABLE).insert(payload);
 
   if (!error) {
     totalCount += 1;
@@ -191,7 +271,7 @@ async function registerScan(record) {
     codigo: error.code || "N/A",
     mensaje: error.message || "Sin mensaje",
     detalle: error.details || "",
-    hint: error.hint || ""
+    hint: error.hint || "",
   });
 
   addToHistory(record, "error");
@@ -301,7 +381,15 @@ el.btnTorch.addEventListener("click", async () => {
   updateConnStatus();
   renderQueueStatus(getQueue().length);
   await refreshCounter();
-  await initCameraAndScanner();
+
+  operador = loadOperador();
+  if (operador) {
+    showApp();
+    await initCameraAndScanner();
+  } else {
+    showLogin();
+  }
+
   if (navigator.onLine) flushQueue();
   setInterval(() => { if (navigator.onLine) flushQueue(); }, 15000);
 })();

@@ -3,16 +3,48 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Control de Asistencia · Escáner QR</title>
+<title>Control de Asistencia · Salesland</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <h1>Control de Asistencia</h1>
-    <div class="counter" id="counter">0 registrados</div>
+  <!-- Pantalla de inicio de sesión: identifica quién está controlando el ingreso -->
+  <section id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="brand">
+        <span class="brand-sales">SALES</span><span class="brand-land">LAND</span>
+      </div>
+      <p class="login-subtitle">Control de Asistencia</p>
+
+      <label class="field-label" for="login-nombre">Nombre completo</label>
+      <input id="login-nombre" class="field-input" type="text" placeholder="Ej. Juan Pérez López" autocomplete="off" />
+
+      <label class="field-label" for="login-dni">DNI</label>
+      <input id="login-dni" class="field-input" type="text" inputmode="numeric" placeholder="Ej. 12345678" autocomplete="off" />
+
+      <button id="btn-login" class="btn primary full">Ingresar</button>
+      <p id="login-error" class="login-error" hidden>Completa tu nombre y DNI para continuar.</p>
+    </div>
+  </section>
+
+  <header class="topbar" id="topbar" hidden>
+    <div class="brand brand-small">
+      <span class="brand-sales">SALES</span><span class="brand-land">LAND</span>
+      <span class="brand-tagline">Control de Asistencia</span>
+    </div>
+    <div class="topbar-right">
+      <div class="counter" id="counter">0 registrados</div>
+      <button id="btn-logout" class="link-btn">Cambiar usuario</button>
+    </div>
   </header>
 
-  <main>
+  <div class="operator-bar" id="operator-bar" hidden>
+    Controlando ingreso: <b id="operator-name"></b>
+  </div>
+
+  <main id="main-content" hidden>
     <section class="scanner-card">
       <div id="reader"></div>
       <div class="scanner-controls">
