@@ -29,7 +29,13 @@
 
   <main id="main-content">
     <section class="scanner-card">
-      <div id="reader"></div>
+      <div class="reader-wrap">
+        <div id="reader"></div>
+        <div id="scan-overlay" class="scan-overlay" hidden>
+          <div class="scan-overlay-icon" id="scan-overlay-icon"></div>
+          <div class="scan-overlay-text" id="scan-overlay-text"></div>
+        </div>
+      </div>
       <div class="scanner-controls">
         <button id="btn-toggle-camera" class="btn secondary">🔄 Cambiar cámara</button>
         <button id="btn-torch" class="btn secondary" hidden>🔦 Linterna</button>

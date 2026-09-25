@@ -311,12 +311,58 @@ main {
   overflow: hidden;
 }
 
+.reader-wrap {
+  position: relative;
+}
+
 #reader {
   width: 100%;
   min-height: 220px;
   border-radius: 12px;
   overflow: hidden;
   background: #000;
+}
+
+/* Aviso central sobre la cámara al registrar (éxito) o detectar duplicado */
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px;
+  pointer-events: none;
+  animation: scanOverlayFade 2s ease forwards;
+}
+
+.scan-overlay[hidden] { display: none; }
+
+.scan-overlay.ok { background: rgba(31, 157, 107, 0.88); }
+.scan-overlay.dup { background: rgba(201, 138, 31, 0.88); }
+
+.scan-overlay-icon {
+  font-size: 54px;
+  line-height: 1;
+  color: #fff;
+}
+
+.scan-overlay-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+@keyframes scanOverlayFade {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .scanner-controls {

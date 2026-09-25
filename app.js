@@ -34,6 +34,9 @@ const el = {
   historyList: document.getElementById("history-list"),
   btnToggleCamera: document.getElementById("btn-toggle-camera"),
   btnTorch: document.getElementById("btn-torch"),
+  scanOverlay: document.getElementById("scan-overlay"),
+  scanOverlayIcon: document.getElementById("scan-overlay-icon"),
+  scanOverlayText: document.getElementById("scan-overlay-text"),
 
   // Pop-up de asistentes registrados
   attendanceModal: document.getElementById("attendance-modal"),
@@ -182,7 +185,10 @@ async function refreshCounter() {
 
 // ---------- Resultado visual ----------
 
+let resultCardTimeout = null;
+
 function showResult(kind, title, data) {
+  clearTimeout(resultCardTimeout);
   el.resultCard.hidden = false;
   el.resultCard.className = "result-card " + kind;
   el.resultIcon.textContent = kind === "ok" ? "✅" : kind === "dup" ? "⚠️" : "❌";
@@ -195,6 +201,35 @@ function showResult(kind, title, data) {
       el.resultFields.appendChild(div);
     }
   }
+
+  // El historial de abajo ya guarda el registro, así que este recuadro
+  // solo necesita mostrarse un momento cuando es éxito o duplicado.
+  if (kind === "ok" || kind === "dup") {
+    resultCardTimeout = setTimeout(() => {
+      el.resultCard.hidden = true;
+    }, 2000);
+  }
+}
+
+// Aviso grande en el centro de la cámara: check verde (registrado) o aviso amarillo (duplicado)
+let scanOverlayTimeout = null;
+
+function showScanOverlay(kind) {
+  clearTimeout(scanOverlayTimeout);
+
+  el.scanOverlay.hidden = false;
+  el.scanOverlay.className = "scan-overlay " + kind;
+  el.scanOverlayIcon.textContent = kind === "ok" ? "✅" : "⚠️";
+  el.scanOverlayText.textContent = kind === "ok" ? "Registrado" : "Duplicado";
+
+  // Reinicia la animación de desvanecido por si se dispara varias veces seguidas
+  el.scanOverlay.style.animation = "none";
+  void el.scanOverlay.offsetWidth;
+  el.scanOverlay.style.animation = "";
+
+  scanOverlayTimeout = setTimeout(() => {
+    el.scanOverlay.hidden = true;
+  }, 2000);
 }
 
 function escapeHtml(s) {
@@ -256,6 +291,7 @@ async function registerScan(record) {
     totalCount += 1;
     el.btnAttendance.textContent = `${totalCount} registrado(s)`;
     showResult("ok", "Asistencia registrada", record);
+    showScanOverlay("ok");
     addToHistory(record, "registrado");
     beep(880, 120);
     return;
@@ -269,6 +305,7 @@ async function registerScan(record) {
       .eq("dni", record.dni)
       .maybeSingle();
     showResult("dup", "Este DNI ya fue registrado antes", existing || record);
+    showScanOverlay("dup");
     addToHistory(record, "duplicado");
     beep(300, 200);
     return;
@@ -389,16 +426,6 @@ el.btnTorch.addEventListener("click", async () => {
 
 let attendanceData = []; // cache de la última carga, para filtrar en el cliente sin golpear la BD en cada tecla
 
-// Nombres de columna de fecha que podrían existir en la tabla, según cómo se haya creado
-const POSSIBLE_DATE_FIELDS = ["created_at", "inserted_at", "fecha", "fecha_registro", "timestamp"];
-
-function getDateField(record) {
-  for (const key of POSSIBLE_DATE_FIELDS) {
-    if (record[key]) return record[key];
-  }
-  return null;
-}
-
 async function fetchAttendance() {
   // Intenta ordenar por fecha de creación; si la columna no existe en tu tabla, reintenta sin orden.
   let { data, error } = await sb.from(TABLE).select("*").order("created_at", { ascending: false });
@@ -432,14 +459,9 @@ function renderAttendanceList() {
 
   for (const r of filtered) {
     const li = document.createElement("li");
-    const dateField = getDateField(r);
-    const timeLabel = dateField
-      ? new Date(dateField).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" })
-      : "Hora no disponible";
     li.innerHTML = `
       <div class="att-name">${escapeHtml(String(r.asistente ?? ""))}</div>
       <div class="att-meta">DNI ${escapeHtml(String(r.dni ?? ""))} · ${escapeHtml(String(r.coordinador ?? ""))} · ${escapeHtml(String(r.campana ?? ""))}</div>
-      <div class="att-meta">${escapeHtml(timeLabel)}</div>
     `;
     el.attendanceList.appendChild(li);
   }
